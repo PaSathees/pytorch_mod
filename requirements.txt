@@ -1,0 +1,12 @@
+pytorch
+matplotlib
+pandas
+numpy
+torchvision
+torchaudio
+scikit-learn
+torchmetrics
+tqdm
+mlxtend
+torchinfo
+gradio
