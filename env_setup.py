@@ -199,5 +199,3 @@ def get_agnostic_device():
         string: name of the device ("cuda" or "cpu")
     """
     return "cuda" if torch.cuda.is_available() else "cpu"
-
-print_versions()

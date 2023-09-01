@@ -133,11 +133,21 @@ def train(
     loss_fn: torch.nn.Module,
     epochs: int,
     device: torch.device = None,
-    test_dataloader: torch.utils.data.DataLoader = None,
     val_dataloader: torch.utils.data.DataLoader = None,
+    test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
 ) -> Dict[str, List[float]]:
-    """Trains, validates (optional), and tests a PyTorch Model
+    """Trains, validates (optional), and tests a PyTorch Model. 
+    
+    Important: If you only have train & test dataloaders provide your test dataloader as val_dataloader and don't set test_dataloder. If you have train, validation & test dataloaders set all three. Like this,
+        if train_dataloader & test_dataloader:
+            train_dataloader = train_dataloader
+            val_dataloader = test_dataloader
+            test_dataloader = None
+        if train_dataloader, val_dataloader, & test_dataloader:
+            train_dataloader = train_dataloader
+            val_dataloader = val_dataloader
+            test_dataloader = test_dataloader
 
     Trains the PyTorch model for given number of epochs by passing through train_step() and test_step().
 
@@ -157,8 +167,8 @@ def train(
         In the form: ({
             train_loss: [...],
             train_acc: [...],
-            test_loss: [...],
-            test_acc: [...]
+            val_loss: [...],
+            val_acc: [...]
             },
             67.5)
     """
@@ -174,88 +184,59 @@ def train(
         not test_dataloader and not val_dataloader
     ), "[WARN] [EXIT] Either one of test_dataloader or val_dataloader should be provided"
 
-    if val_dataloader:
-        # Define results dictionary
-        results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
+    # Define results dictionary
+    results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
 
-        # STarting timer
-        start_time = timer()
+    # Starting timer
+    start_time = timer()
 
-        # Training through epochs
-        for epoch in tqdm(range(epochs)):
-            train_loss, train_accuracy = train_step(
-                model=model,
-                dataloader=train_dataloader,
-                loss_fn=loss_fn,
-                optimizer=optimizer,
-                device=device,
+    # Training through epochs
+    for epoch in tqdm(range(epochs)):
+        train_loss, train_accuracy = train_step(
+            model=model,
+            dataloader=train_dataloader,
+            loss_fn=loss_fn,
+            optimizer=optimizer,
+            device=device,
+        )
+
+        val_loss, val_accuracy = test_step(
+            model=model, dataloader=val_dataloader, loss_fn=loss_fn, device=device
+        )
+
+        # Printing status
+        if print_status:
+            print(
+                f"[INFO] Epoch: {epoch+1} | "
+                f"Train_loss: {train_loss:.4f} | "
+                f"Train_acc: {train_accuracy:.4f} | "
+                f"Val_loss: {val_loss:.4f} | "
+                f"Val_acc: {val_accuracy:.4f}"
             )
-
-            val_loss, val_accuracy = test_step(
-                model=model, dataloader=val_dataloader, loss_fn=loss_fn, device=device
-            )
-
-            # Printing status
-            if print_status:
-                print(
-                    f"[INFO] Epoch: {epoch+1} | "
-                    f"Train_loss: {train_loss:.4f} | "
-                    f"Train_acc: {train_accuracy:.4f} | "
-                    f"Val_loss: {val_loss:.4f} | "
-                    f"Val_acc: {val_accuracy:.4f}"
-                )
-
-            # Update results dictionary
-            results["train_loss"].append(train_loss)
-            results["train_acc"].append(train_accuracy)
-            results["val_loss"].append(val_loss)
-            results["val_acc"].append(val_accuracy)
-
-        # print timing
-        training_time = timer() - start_time
-        print(f"[INFO] Training time: {training_time:.3f} seconds")
-
-        return results, training_time
-
-    else:
-        # Define results dictionary
-        results = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
-
-        # STarting timer
-        start_time = timer()
-
-        # Training through epochs
-        for epoch in tqdm(range(epochs)):
-            train_loss, train_accuracy = train_step(
-                model=model,
-                dataloader=train_dataloader,
-                loss_fn=loss_fn,
-                optimizer=optimizer,
-                device=device,
-            )
-
-            test_loss, test_accuracy = test_step(
-                model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
-            )
-
-            # printing status
-            if print_status:
-                print(
-                    f"[INFO] Epoch: {epoch+1} | "
-                    f"train_loss: {train_loss:.4f} | "
-                    f"train_acc: {train_accuracy:.4f} | "
-                    f"test_loss: {test_loss:.4f} | "
-                    f"test_acc: {test_accuracy:.4f}"
-                )
 
         # Update results dictionary
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_accuracy)
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_accuracy)
+        results["val_loss"].append(val_loss)
+        results["val_acc"].append(val_accuracy)
 
-        # print timing
-        training_time = timer() - start_time
-        print(f"[INFO] Training time: {training_time:.3f} seconds")
+    # print timing
+    training_time = timer() - start_time
+    print(f"[INFO] Training time: {training_time:.3f} seconds")
 
-        return results, training_time
+    if test_dataloader:
+        test_loss, test_accuracy = test_step(
+                model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
+            )
+        
+        # printing status
+        if print_status:
+            print(
+                f"[INFO] test_loss: {test_loss:.4f} | "
+                f"test_acc: {test_accuracy:.4f}"
+            )
+
+        results["test_loss"] = test_loss
+        results["test_accuracy"] = test_accuracy
+
+    return results, training_time

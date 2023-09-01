@@ -1,4 +1,4 @@
-"""Contains functionality with experimenting with PyTorch
+"""Contains functionality for using pre-trained Pytorch models
 
 Currently supports:
     1. Computer Vision
