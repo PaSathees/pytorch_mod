@@ -13,6 +13,7 @@ Status:
 - [ ] Transfer-learning functions
 - [ ] Testing with FoodVision Mini
 - [ ] Testing with FoodVision Big
+- [ ] Import modules section
 
 Install module requirements by:
 1. Manually intalling PyTorch: 
