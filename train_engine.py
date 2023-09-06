@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple
 from timeit import default_timer as timer
 import torch
 from tqdm.auto import tqdm
-from ./env_setup.py import print_gpu_status, get_agnostic_device
+from env_setup import print_gpu_status, get_agnostic_device
 
 
 def train_step(
