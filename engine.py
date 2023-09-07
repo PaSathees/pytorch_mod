@@ -15,6 +15,7 @@ from typing import Dict, List, Tuple
 from timeit import default_timer as timer
 import torch
 from tqdm.auto import tqdm
+from torch.utils import tensorboard
 
 
 def train_step(
@@ -135,7 +136,7 @@ def train(
     val_dataloader: torch.utils.data.DataLoader = None,
     test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
-    writer: torch.utils.tensorboard.SummaryWriter = None,
+    writer: tensorboard.SummaryWriter = None,
 ) -> Dict[str, List[float]]:
     """Trains, validates (optional), and tests a PyTorch Model.
 
