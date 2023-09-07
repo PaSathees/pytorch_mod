@@ -40,7 +40,7 @@ def print_versions():
     # Torchvision
     try:
         import torchvision
-        print(f"[INFO] Torchvision Version: {torchvision.__version__}")
+        print(f"Torchvision Version: {torchvision.__version__}")
     except ImportError:
         print("[INFO] No Torchvision found")
 

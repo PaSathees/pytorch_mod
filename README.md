@@ -18,7 +18,7 @@ Install module requirements by:
 1. Manually installing PyTorch: 
 `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
 or visit https://pytorch.org
-2. Install rest of the requirements: `pip install -r requirements.txt`
+2. Install rest of the requirements: `pip install -r requirements.txt --quiet`
 
 Includes following modules:
 1. [env_setup.py](env_setup.py) : Includes following functions related setting up the environment and device agnostic code with PyTorch: 
