@@ -135,7 +135,7 @@ def train(
     val_dataloader: torch.utils.data.DataLoader = None,
     test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
-    writer: torch.utils.tensorboard.writer.SummaryWriter = None,
+    writer: torch.utils.tensorboard.SummaryWriter = None,
 ) -> Dict[str, List[float]]:
     """Trains, validates (optional), and tests a PyTorch Model.
 
