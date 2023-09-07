@@ -1,7 +1,7 @@
 """Contians training functions for PyTorch model
 
 Currently supports:
-    1. Computer Vision
+    1. Computer Vision (multiclass and binary)
 
 Authored by:
     1. Sathees Paskaran

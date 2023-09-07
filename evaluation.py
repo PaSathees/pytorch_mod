@@ -1,7 +1,7 @@
 """Contains functionality to predict, and evaluate various PyTorch trained models
 
 Currently supports:
-    1. Computer Vision
+    1. Computer Vision (multiclass and binary)
 
 Authored by:
     1. Sathees Paskaran
@@ -13,12 +13,17 @@ License: MIT
 import random
 from typing import List
 from pathlib import Path
+import numpy
 import torch
+import torchmetrics
 import torchvision
 from PIL import Image
 import matplotlib.pyplot as plt
 import requests
 from google.colab import files
+from sklearn.metrics import classification_report
+from tqdm.auto import tqdm
+from mlxtend.plotting import plot_confusion_matrix
 
 
 def pred_and_plot_image(
@@ -188,39 +193,124 @@ def pred_and_plot_colab_interface(
         )
 
 
-def eval_model(
+def evaluate_model_metrics(
     model: torch.nn.Module,
     test_dataloader: torch.utils.data.DataLoader,
+    device: torch.device,
+    class_names: List,
+    task: str,
     loss_fn: torch.nn.Module,
-    accuracy_fn,
+    average: str = "micro",
+    threshold: float = 0.5,
 ):
-    """Returns a dictionary containing the results of model predicting on test_dataloader.
+    """
+    Evaluate a PyTorch model using torchmetrics for common metrics.
 
     Args:
-        model (torch.nn.Module): A PyTorch model capable of making predictions on test_dataloader.
-        test_dataloader (torch.utils.data.DataLoader): The target dataset to predict on.
-        loss_fn (torch.nn.Module): The loss function of model.
-        accuracy_fn: An accuracy function to compare the models predictions to the truth labels.
+        model (nn.Module): The PyTorch model to be evaluated.
+        test_dataloader (DataLoader): DataLoader containing the test data.
+        device (str): Device to run the evaluation on ('cpu' or 'cuda').
+        class_names (List): List of class names.
+        task (str): Task name (e.g., 'binary', 'multiclass' or 'multilabel').
+        loss_fn (torch.nn.Module): loss function for loss evaluation
+        average (str): Torchmetrics average parameter, Default "micro"
+        threshold (float): Sigmoid threshold, Default 0.5.
 
     Returns:
-        (dict): Results of model making predictions on test_dataloader.
+        dict: Dictionary containing various evaluation metrics.
     """
-    loss, acc = 0, 0
+    metric_dict = {}
+    num_classes = len(class_names)
+
+    # Initialize metrics
+    accuracy = torchmetrics.Accuracy(task=task, num_classes=num_classes).to(device)
+    precision = torchmetrics.Precision(
+        task=task, average=average, num_classes=num_classes
+    ).to(device)
+    recall = torchmetrics.Recall(
+        task=task, average=average, num_classes=num_classes
+    ).to(device)
+    f1_score = torchmetrics.F1Score(task=task, num_classes=num_classes).to(device)
+    confusion_matrix = torchmetrics.ConfusionMatrix(
+        task=task, num_classes=num_classes
+    ).to(device)
+
+    # Metric calculation
+    loss = 0
+    outputs = []
+    targets = []
     model.eval()
     with torch.inference_mode():
-        for X, y in test_dataloader:
-            y_pred = model(X)
+        # Loss calculation & accumulating outputs and targets for other metrics
+        for X, y in tqdm(test_dataloader, desc="Making Predictions"):
+            y_pred_logits = model(X)
+            loss += loss_fn(y_pred_logits, y)
 
-            loss += loss_fn(y_pred, y)
-            acc += accuracy_fn(
-                y_true=y, y_pred=y_pred.argmax(dim=1)
-            )  # For accuracy, need the prediction labels (logits -> pred_prob -> pred_labels)
+            if task == "multiclass":
+                y_pred_probs = torch.softmax(y_pred_logits, dim=1)
+                y_pred_label = torch.argmax(y_pred_probs, dim=1)
+            else:
+                y_pred_label = 1 if y_pred_logits > threshold else 0
+
+            outputs.append(y_pred_label.cpu())
+            targets.append(y.cpu())
 
         loss /= len(test_dataloader)
-        acc /= len(test_dataloader)
+        outputs_tensor = torch.cat(outputs)
+        targets_tensor = torch.cat(targets)
 
-    return {
-        "model_name": model.__class__.__name__,
-        "model_loss": loss.item(),
-        "model_acc": acc,
-    }
+        # Other metrics
+        metric_dict = {
+            "model_name": model.__class__.__name__,
+            "model_loss": loss.item(),
+            "model_acc": accuracy(outputs_tensor, targets_tensor).item(),
+            "model_precision": precision(outputs_tensor, targets_tensor).item(),
+            "model_recall": recall(outputs_tensor, targets_tensor).item(),
+            "model_fl_score": f1_score(outputs_tensor, targets_tensor).item(),
+            "model_confusion_matrix": confusion_matrix(outputs_tensor, targets_tensor)
+            .cpu()
+            .numpy(),
+        }
+
+    # Plot the confusion matrix
+    plot_confusion_matrix(
+        conf_mat=metric_dict["model_confusion_matrix"],
+        class_names=class_names,
+        figsize=(10, 7),
+    )
+
+    return metric_dict
+
+
+def evaluate_classification_report(
+    model: torch.nn.Module,
+    test_dataloader: torch.utils.data.DataLoader,
+    device: torch.device,
+    class_names: List,
+):
+    """
+    Evaluate a PyTorch model and generate a classification report.
+
+    Args:
+        model (nn.Module): The PyTorch model to be evaluated.
+        test_dataloader (DataLoader): DataLoader containing the test data.
+        device (str): Device to run the evaluation on ('cpu' or 'cuda').
+        class_names (List): List of class names.
+
+    Returns:
+        str: Classification report as a string.
+    """
+    model.eval()
+    y_true = []
+    y_pred = []
+
+    with torch.inference_mode():
+        for inputs, targets in tqdm(test_dataloader, desc="Making Predictions"):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            predicted = outputs.argmax(dim=1)
+            y_true.extend(targets.cpu().numpy())
+            y_pred.extend(predicted.cpu().numpy())
+
+    report = classification_report(y_true, y_pred, target_names=class_names)
+    return report
