@@ -6,8 +6,7 @@ Status:
 1. Supports computer vision. Remaining tasks:
 - [ ] Prediction function
 - [ ] Evaluation function
-- [ ] Chart visualization function
-- [x] Update tensorboard with train_engine.py
+- [ ] Loss & accuracy charts visualization function
 - [ ] Testing with FoodVision Mini
 - [ ] Testing with FoodVision Big
 
@@ -36,8 +35,11 @@ Includes following modules:
 4. [evaluation.py](evaluation.py) : Contains following functions to predict, and evaluate various PyTorch trained models: 
 5. [deployment.py](deployment.py) : Contains following functions for deploying PyTorch models:
    - `save_model_to_directory(model:, target_directory, save_name)`: Saves PyTorch model to a local target directory
-6. [cv_models.py](cv_models.py) : Contains following of the state-of-the-art PyTorch computer vision model architectures:
+6. [cv_model_builders.py](cv_model_builders.py) : Contains following of the state-of-the-art PyTorch computer vision model architectures:
    - `TinyVGG(torch.nn.Module)`: Creates the TinyVGG architecture: https://poloclub.github.io/cnn-explainer/
 7. [visualization.py](visualization.py) : Contains following functions to visualize metrics:
 8. [experimentation.py](experimentation.py) : Contains following functions for experimenting with PyTorch:
    - `create_writer(experiment_name, model_name, extra)` : Creates a torch.utils.tensorboard.writer.SummaryWriter() to a specific log_dir
+9. [utils.py](utlils.py): Contains following general utility functions for PyTorch training:
+   - `set_seeds(seed)`: Sets random seeds for torch operations
+   - `walk_through_dir(dir_path)`: Walks through dir_path returning its contents
