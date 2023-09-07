@@ -177,8 +177,6 @@ def train(
     # Device check
     print(f"[INFO] Using device: {device}")
 
-    print((test_dataloader or val_dataloader))
-
     # Parameter check
     assert (
         (val_dataloader)
