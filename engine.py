@@ -23,7 +23,7 @@ def train_step(
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
-) -> Tuple(float, float):
+) -> Tuple[float, float]:
     """Training loop for a single epoch with PyTorch
 
     Trains given PyTorch model through necessary trianing steps
@@ -81,7 +81,7 @@ def test_step(
     dataloader: torch.utils.data.DataLoader,
     loss_fn: torch.nn.Module,
     device: torch.device,
-) -> Tuple(float, float):
+) -> Tuple[float, float]:
     """Testing loop for single epoch with PyTorch
 
     Performs a epoch testing loop on a PyTorch Model with "eval" mode.
