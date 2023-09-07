@@ -179,7 +179,7 @@ def train(
 
     # Parameter check
     assert (
-        not test_dataloader and not val_dataloader
+        (not test_dataloader) and (not val_dataloader)
     ), "[WARN] [EXIT] Either one of test_dataloader or val_dataloader should be provided"
 
     # Define results dictionary
