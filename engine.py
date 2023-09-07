@@ -15,7 +15,6 @@ from typing import Dict, List, Tuple
 from timeit import default_timer as timer
 import torch
 from tqdm.auto import tqdm
-from env_setup import print_gpu_status, get_agnostic_device
 
 
 def train_step(
@@ -132,13 +131,14 @@ def train(
     optimizer: torch.optim.Optimizer,
     loss_fn: torch.nn.Module,
     epochs: int,
-    device: torch.device = None,
+    device: torch.device,
     val_dataloader: torch.utils.data.DataLoader = None,
     test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
+    writer: torch.utils.tensorboard.writer.SummaryWriter = None,
 ) -> Dict[str, List[float]]:
-    """Trains, validates (optional), and tests a PyTorch Model. 
-    
+    """Trains, validates (optional), and tests a PyTorch Model.
+
     Important: If you only have train & test dataloaders provide your test dataloader as val_dataloader and don't set test_dataloder. If you have train, validation & test dataloaders set all three. Like this,
         if train_dataloader & test_dataloader:
             train_dataloader = train_dataloader
@@ -161,6 +161,7 @@ def train(
         test_dataloader (torch.utils.data.DataLoader, optional): DataLoader instance to test the model. Defaults to None.
         val_dataloader (torch.utils.data.DataLoader, optional): DataLoader instance to validate the model. Defaults to None.
         print_status (bool, optional): Whether to print epoch results. Defaults to True.
+        writer (torch.utils.tensorboard.writer.SummaryWriter, optional): A SummaryWriter instance to write model summary to.
 
     Returns:
         Tuple (Dict[str, List[float]], float): Results dictionary with training and testing loss and accuracies over the epochs, and total training time
@@ -174,10 +175,7 @@ def train(
     """
 
     # Device check
-    if not device:
-        print_gpu_status()
-        device = get_agnostic_device()
-        print(f"[INFO] Using device: {device}")
+    print(f"[INFO] Using device: {device}")
 
     # Parameter check
     assert (
@@ -220,23 +218,47 @@ def train(
         results["val_loss"].append(val_loss)
         results["val_acc"].append(val_accuracy)
 
+        # Use writer if given
+        if writer:
+            writer.add_scalars(
+                main_tag="Loss",
+                tag_scalar_dict={"train_loss": train_loss, "val_loss": val_loss},
+                global_step=epoch,
+            )
+            writer.add_scalars(
+                main_tag="Accuracy",
+                tag_scalar_dict={"train_acc": train_accuracy, "val_acc": val_accuracy},
+                global_step=epoch,
+            )
+
+            if not test_dataloader:
+                writer.close()
+
     # print timing
     training_time = timer() - start_time
     print(f"[INFO] Training time: {training_time:.3f} seconds")
 
     if test_dataloader:
         test_loss, test_accuracy = test_step(
-                model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
-            )
-        
+            model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
+        )
+
         # printing status
         if print_status:
             print(
-                f"[INFO] test_loss: {test_loss:.4f} | "
-                f"test_acc: {test_accuracy:.4f}"
+                f"[INFO] test_loss: {test_loss:.4f} | " f"test_acc: {test_accuracy:.4f}"
             )
 
         results["test_loss"] = test_loss
         results["test_accuracy"] = test_accuracy
+
+        if writer:
+            writer.add_scalars(
+                main_tag="Test",
+                tag_scalar_dict={"test_loss": test_loss, "test_acc": test_accuracy},
+                global_step=epochs - 1,
+            )
+
+            writer.close()
 
     return results, training_time
