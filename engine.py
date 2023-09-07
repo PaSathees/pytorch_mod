@@ -177,10 +177,12 @@ def train(
     # Device check
     print(f"[INFO] Using device: {device}")
 
+    print((test_dataloader or val_dataloader))
+
     # Parameter check
     assert (
-        not (test_dataloader or val_dataloader)
-    ), "[WARN] [EXIT] Either one of test_dataloader or val_dataloader should be provided"
+        (val_dataloader)
+    ), "[WARN] [EXIT] val_dataloader should be provided, if you have only train & test, set val_dataloader = test_dataloader & ignore test_dataloader parameter"
 
     # Define results dictionary
     results = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
