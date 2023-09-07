@@ -10,12 +10,14 @@ Modified by:
 
 License: MIT
 """
+import random
 from typing import List
 import torch
 import torchvision
 from PIL import Image
 import matplotlib.pyplot as plt
 import requests
+from pathlib import Path
 
 
 def pred_and_plot_image(
@@ -97,6 +99,49 @@ def pred_on_custom_image_url(
             transform=transform,
             multiclass=multiclass,
             sigmoid_threshold=sigmoid_threshold,
+        )
+
+
+def pred_and_plot_local_image_random(
+    model: torch.nn.Module,
+    test_dir_path: str,
+    class_names: List[str],
+    device: torch.device,
+    transform: torchvision.transforms,
+    multiclass: bool = True,
+    image_extension: str = ".jpg",
+    sigmoid_threshold: float = 0.5,
+    num_images_to_plot: int = 3,
+):
+    """Predicts random number of local image with the given model and plots both predictions and images
+
+    Args:
+        model (torch.nn.Module): Model to predict on,
+        image_path (str): Path to local image,
+        class_names (List[str]): List of class names,
+        device (torch.device): Device for inference,
+        transform (torchvision.transforms): Transforms for image,
+        multiclass (bool, optional): whether prediction is for multiclass, Default True.
+        sigmoid_threshold (float, optional): if prediction is binary, sigmoid threshold value. Default 0.5
+        num_images_to_plot (int): Number of images to plot, default 3.
+    """
+
+    # Select random number of image paths from test_dir
+    test_image_path_list = list(Path(test_dir_path).glob(f"*/*{image_extension}"))
+    test_image_path_sample = random.sample(
+        population=test_image_path_list, k=num_images_to_plot
+    )
+
+    # Make predictions on and plot the images
+    for image_path in test_image_path_sample:
+        pred_and_plot_image(
+            model=model,
+            image_path=image_path,
+            class_names=class_names,
+            device=device,
+            transform=transform,
+            multiclass=multiclass,
+            sigmoid_threshold=sigmoid_threshold
         )
 
 
