@@ -102,7 +102,7 @@ def pred_on_custom_image_url(
         )
 
 
-def pred_and_plot_local_image_random(
+def pred_and_plot_local_random_images(
     model: torch.nn.Module,
     test_dir_path: str,
     class_names: List[str],
