@@ -40,6 +40,6 @@ Includes following modules:
 7. [visualization.py](visualization.py) : Contains following functions to visualize metrics:
 8. [experimentation.py](experimentation.py) : Contains following functions for experimenting with PyTorch:
    - `create_writer(experiment_name, model_name, extra)` : Creates a torch.utils.tensorboard.writer.SummaryWriter() to a specific log_dir
-9. [utils.py](utlils.py): Contains following general utility functions for PyTorch training:
+9. [utils.py](utils.py): Contains following general utility functions for PyTorch training:
    - `set_seeds(seed)`: Sets random seeds for torch operations
    - `walk_through_dir(dir_path)`: Walks through dir_path returning its contents
