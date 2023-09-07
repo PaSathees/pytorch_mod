@@ -10,12 +10,12 @@ Status:
 - [x] Update tensorboard with train_engine.py
 - [ ] Testing with FoodVision Mini
 - [ ] Testing with FoodVision Big
-- [ ] Import modules section
 
 Import module to Google Colab By:
-`
+<br>`!git clone https://github.com/PaSathees/pytorch_mod.git`
+<br>`!mv pytorch_mod/* .`
+<br>`!rm -rf pytorch_mod`
 
-`
 Install module requirements by:
 1. Manually installing PyTorch: 
 `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
