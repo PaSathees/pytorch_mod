@@ -287,6 +287,8 @@ def evaluate_classification_report(
     test_dataloader: torch.utils.data.DataLoader,
     device: torch.device,
     class_names: List,
+    task: str,
+    threshold: float = 0.5,
 ):
     """
     Evaluate a PyTorch model and generate a classification report.
@@ -296,6 +298,8 @@ def evaluate_classification_report(
         test_dataloader (DataLoader): DataLoader containing the test data.
         device (str): Device to run the evaluation on ('cpu' or 'cuda').
         class_names (List): List of class names.
+        task (str): Task name (e.g., 'binary', 'multiclass' or 'multilabel').
+        threshold (float): Sigmoid threshold, Default 0.5.
 
     Returns:
         str: Classification report as a string.
@@ -308,7 +312,11 @@ def evaluate_classification_report(
         for inputs, targets in tqdm(test_dataloader, desc="Making Predictions"):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
-            predicted = outputs.argmax(dim=1)
+            if task == "multiclass":
+                y_pred_probs = torch.softmax(outputs, dim=1)
+                predicted = torch.argmax(y_pred_probs, dim=1)
+            else:
+                predicted = 1 if outputs > threshold else 0
             y_true.extend(targets.cpu().numpy())
             y_pred.extend(predicted.cpu().numpy())
 
