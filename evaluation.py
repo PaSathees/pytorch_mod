@@ -11,10 +11,10 @@ Modified by:
 License: MIT
 """
 import random
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
-import numpy
 import torch
+from PIL import Image
 import torchmetrics
 import torchvision
 from PIL import Image
@@ -24,6 +24,7 @@ from google.colab import files
 from sklearn.metrics import classification_report
 from tqdm.auto import tqdm
 from mlxtend.plotting import plot_confusion_matrix
+import torchvision.transforms as transforms
 
 
 def pred_and_plot_image(
@@ -322,3 +323,98 @@ def evaluate_classification_report(
 
     report = classification_report(y_true, y_pred, target_names=class_names)
     return report
+
+
+def failed_image_generator(
+    model: torch.nn.Module,
+    test_dataloader: torch.utils.data.DataLoader,
+    device: torch.device,
+    task: str,
+    threshold: float = 0.5,
+):
+    """
+    Generator that yields failed images from the test DataLoader with their predicted and target labels.
+
+    Args:
+        model (nn.Module): The PyTorch model to be evaluated.
+        test_dataloader (DataLoader): DataLoader containing the test data.
+        device (str): Device to run the evaluation on ('cpu' or 'cuda').
+        task (str): Task name (e.g., 'binary', 'multiclass' or 'multilabel').
+        threshold (float): Sigmoid threshold, Default 0.5.
+
+    Returns:
+        generator: Returns generator of (input, prediction, target)
+    """
+    model.eval()
+
+    with torch.inference_mode():
+        for inputs, targets in test_dataloader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            if task == "multiclass":
+                y_pred_probs = torch.softmax(outputs, dim=1)
+                predictions = torch.argmax(y_pred_probs, dim=1)
+            else:
+                predictions = 1 if outputs > threshold else 0
+            for input, prediction, target in zip(inputs, predictions, targets):
+                if not torch.all(prediction == target):
+                    yield input.cpu(), prediction.cpu(), target.cpu()
+
+
+def inverse_normalize(tensor: torch.Tensor, mean: Tuple, std: Tuple):
+    """
+    Inverse normalization of a PyTorch tensor.
+
+    Args:
+        tensor (torch.Tensor): The tensor to be normalized.
+        mean (tuple): Mean values used for normalization.
+        std (tuple): Standard deviation values used for normalization.
+
+    Returns:
+        torch.Tensor: The de-normalized tensor.
+    """
+    for t, m, s in zip(tensor, mean, std):
+        t.mul_(s).add_(m)
+    return tensor
+
+
+def plot_failed_images_from_generator(
+    failed_image_gen,
+    class_names: List,
+    transform: torchvision.transforms = None,
+    max_images: int = 10,
+):
+    """
+    Plot failed images from the generator with their predicted and target labels.
+
+    Args:
+        failed_image_gen: Generator that yields failed images.
+        class_names (List): List of class names.
+        transform (torchvision.transforms): Transform used for normalization.
+        max_images (int): Maximum number of failed images to plot (default is 10).
+    """
+    for i, (image, predicted, target) in enumerate(failed_image_gen):
+        plt.figure(figsize=(8, 4))
+
+        if transform:
+            # Inverse normalize the image tensor
+            mean = transform.mean
+            std = transform.std
+            denormalized_image = inverse_normalize(image.clone(), mean, std)
+        else:
+            denormalized_image = image.clone()
+
+        # Convert the tensor to a PIL image
+        denormalized_image = transforms.ToPILImage()(denormalized_image)
+
+        # Plot incorrect images
+        plt.imshow(denormalized_image)
+        plt.title(
+            f"Predicted: {class_names[predicted.item()]} | Ground Truth: {class_names[target.item()]}"
+        )
+        plt.axis("off")
+        plt.tight_layout()
+        plt.show()
+
+        if i + 1 >= max_images:
+            break
