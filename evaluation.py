@@ -12,12 +12,13 @@ License: MIT
 """
 import random
 from typing import List
+from pathlib import Path
 import torch
 import torchvision
 from PIL import Image
 import matplotlib.pyplot as plt
 import requests
-from pathlib import Path
+from google.colab import files
 
 
 def pred_and_plot_image(
@@ -117,11 +118,12 @@ def pred_and_plot_local_random_images(
 
     Args:
         model (torch.nn.Module): Model to predict on,
-        image_path (str): Path to local image,
+        test_dir_path (str): Path to local dir that contains test images,
         class_names (List[str]): List of class names,
         device (torch.device): Device for inference,
         transform (torchvision.transforms): Transforms for image,
         multiclass (bool, optional): whether prediction is for multiclass, Default True.
+        image_extension (bool): Extension of image files. Default ".jpg"
         sigmoid_threshold (float, optional): if prediction is binary, sigmoid threshold value. Default 0.5
         num_images_to_plot (int): Number of images to plot, default 3.
     """
@@ -141,7 +143,48 @@ def pred_and_plot_local_random_images(
             device=device,
             transform=transform,
             multiclass=multiclass,
-            sigmoid_threshold=sigmoid_threshold
+            sigmoid_threshold=sigmoid_threshold,
+        )
+
+
+def pred_and_plot_colab_interface(
+    model: torch.nn.Module,
+    class_names: List[str],
+    device: torch.device,
+    transform: torchvision.transforms,
+    multiclass: bool = True,
+    sigmoid_threshold: float = 0.5,
+):
+    """Predicts images uploaded with Google Colab upload interface with the given model and plots both predictions and images
+
+    IMPORTANT; Will not work in environments other than Google Colab
+
+    Args:
+        model (torch.nn.Module): Model to predict on,
+        test_dir_path (str): Path to local dir that contains test images,
+        class_names (List[str]): List of class names,
+        device (torch.device): Device for inference,
+        transform (torchvision.transforms): Transforms for image,
+        multiclass (bool, optional): whether prediction is for multiclass, Default True.
+        image_extension (bool): Extension of image files. Default ".jpg"
+        sigmoid_threshold (float, optional): if prediction is binary, sigmoid threshold value. Default 0.5
+        num_images_to_plot (int): Number of images to plot, default 3.
+    """
+    # Upload files using Google Colab interface
+    uploaded = files.upload()
+
+    for file_name in uploaded.keys():
+        # predicting images
+        image_path = "/content/" + file_name
+
+        pred_and_plot_image(
+            model=model,
+            image_path=image_path,
+            class_names=class_names,
+            device=device,
+            transform=transform,
+            multiclass=multiclass,
+            sigmoid_threshold=sigmoid_threshold,
         )
 
 
