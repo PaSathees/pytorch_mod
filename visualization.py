@@ -12,7 +12,7 @@ License: MIT
 """
 import matplotlib.pyplot as plt
 
-def plot_loss_curves(results):
+def plot_curves(results):
     """Plots training curves of a results dictionary.
 
     Args:
@@ -22,13 +22,14 @@ def plot_loss_curves(results):
              "val_loss": [...],
              "val_acc": [...]}
     """
-    loss = results["train_loss"]
-    val_loss = results["val_loss"]
+    curves = results[0]
+    loss = curves["train_loss"]
+    val_loss = curves["val_loss"]
 
-    accuracy = results["train_acc"]
-    val_accuracy = results["val_acc"]
+    accuracy = curves["train_acc"]
+    val_accuracy = curves["val_acc"]
 
-    epochs = range(len(results["train_loss"]))
+    epochs = range(len(curves["train_loss"]))
 
     plt.figure(figsize=(15, 7))
 

@@ -37,7 +37,7 @@ Includes following modules:
 6. [cv_model_builders.py](cv_model_builders.py) : Contains following of the state-of-the-art PyTorch computer vision model architectures:
    - `TinyVGG(torch.nn.Module)`: Creates the TinyVGG architecture: https://poloclub.github.io/cnn-explainer/
 7. [visualization.py](visualization.py) : Contains following functions to visualize metrics:
-   - `plot_loss_curves(results)` : Plots training curves of a training results dictionary.
+   - `plot_curves(results)` : Plots training curves of a training results dictionary.
 8. [experimentation.py](experimentation.py) : Contains following functions for experimenting with PyTorch:
    - `create_writer(experiment_name, model_name, extra)` : Creates a torch.utils.tensorboard.writer.SummaryWriter() to a specific log_dir
 9. [utils.py](utils.py): Contains following general utility functions for PyTorch training:
