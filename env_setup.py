@@ -105,7 +105,7 @@ def print_gpu_status():
     """Prints whether a CUDA GPU is available & number of GPUs
     """
     if torch.cuda.is_available():
-        print(f"{torch.cuda.device_count()} Supported CUDA GPU are available")
+        print(f"{torch.cuda.device_count()} Supported CUDA GPU available")
     else:
         print("No Supported CUDA GPU found")
 

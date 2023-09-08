@@ -50,6 +50,7 @@ Includes following modules:
 7. [visualization.py](visualization.py) : Contains following functions to visualize metrics:
    - `plot_curves(results)`: Plots training curves of a training results dictionary.
    - `plot_random_images(dir_path, file_pattern, num_plots)`: Plots random images from the given image directory.
+   - `plot_random_transformed_images(dir_path, transform, file_pattern, num_plots, seed)`: Selects random images from a path of images and loads/transforms them then plots the original vs the transformed version.
 8. [experimentation.py](experimentation.py) : Contains following functions for experimenting with PyTorch:
    - `create_writer(experiment_name, model_name, extra)` : Creates a torch.utils.tensorboard.writer.SummaryWriter() to a specific log_dir
 9. [utils.py](utils.py): Contains following general utility functions for PyTorch training:
