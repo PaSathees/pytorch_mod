@@ -244,7 +244,7 @@ def evaluate_model_metrics(
     with torch.inference_mode():
         # Loss calculation & accumulating outputs and targets for other metrics
         for X, y in tqdm(test_dataloader, desc="Making Predictions"):
-            # X, y = X.to(device), y.to(device)
+            X, y = X.to(device), y.to(device)
             y_pred_logits = model(X)
             loss += loss_fn(y_pred_logits, y)
 
@@ -258,8 +258,8 @@ def evaluate_model_metrics(
             targets.append(y.cpu())
 
         loss /= len(test_dataloader)
-        outputs_tensor = torch.cat(outputs).cpu()
-        targets_tensor = torch.cat(targets).cpu()
+        outputs_tensor = torch.cat(outputs).to(device)
+        targets_tensor = torch.cat(targets).to(device)
 
         # Other metrics
         metric_dict = {
