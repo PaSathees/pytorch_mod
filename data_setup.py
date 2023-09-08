@@ -71,8 +71,8 @@ def create_cv_dataloaders(
 
     if val_dir:
         assert (
-            val_dataloader
-        ), "[WARN] [EXIT] val_dataloader should be provided, for validation"
+            val_transform
+        ), "[WARN] [EXIT] val_transform should be provided, for validation"
         val_data = datasets.ImageFolder(val_dir, transform=val_transform)
         val_dataloader = DataLoader(
             val_data,
