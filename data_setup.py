@@ -17,13 +17,16 @@ from torch.utils.data import DataLoader
 
 NUM_WORKERS = os.cpu_count()
 
+
 def create_cv_dataloaders(
-        train_dir: str,
-        test_dir: str,
-        transform: transforms.Compose,
-        batch_size: int,
-        val_dir: str = None,
-        num_workers: int = NUM_WORKERS
+    train_dir: str,
+    test_dir: str,
+    train_transform: transforms.Compose,
+    test_transform: transforms.Compose,
+    batch_size: int,
+    val_dir: str = None,
+    val_transform: transforms.Compose = None,
+    num_workers: int = NUM_WORKERS,
 ):
     """Creates training, validation (optional), and testing DataLoaders.
 
@@ -32,17 +35,19 @@ def create_cv_dataloaders(
     Args:
         train_dir (str): Training directory path
         test_dir (str): Testing directory path
-        transform (transforms.Compose): torchvision transforms for training and testing data
+        train_transform (transforms.Compose): torchvision transforms for training data
+        test_transform (transforms.Compose): torchvision transforms for testing data
         batch_size (int): number of samples per batch
         val_dir (str, optional): Validation directory path. Defaults to None.
+        val_transform (transforms.Compose): torchvision transforms for validation data
         num_workers (int, optional): Number of workers per DataLoader. Defaults to NUM_WORKERS.
 
     Returns:
         Tuple: (train_dataloader, test_dataloader, class_names) or (train_dataloader, val_dataloader, test_dataloader, class_names)
     """
     # Creating datasets from Image folder paths
-    train_data = datasets.ImageFolder(train_dir, transform=transform)
-    test_data = datasets.ImageFolder(test_dir, transform=transform)
+    train_data = datasets.ImageFolder(train_dir, transform=train_transform)
+    test_data = datasets.ImageFolder(test_dir, transform=test_transform)
 
     # Get class names
     class_names = train_data.classes
@@ -53,7 +58,7 @@ def create_cv_dataloaders(
         batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
     )
 
     test_dataloader = DataLoader(
@@ -61,16 +66,20 @@ def create_cv_dataloaders(
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True
+        pin_memory=True,
     )
 
     if val_dir:
+        assert (
+            val_dataloader
+        ), "[WARN] [EXIT] val_dataloader should be provided, for validation"
+        val_data = datasets.ImageFolder(val_dir, transform=val_transform)
         val_dataloader = DataLoader(
-            val_dir,
+            val_data,
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
-            pin_memory=True
+            pin_memory=True,
         )
 
         return train_dataloader, val_dataloader, test_dataloader, class_names

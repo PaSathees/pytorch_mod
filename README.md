@@ -28,7 +28,7 @@ Includes following modules:
    - `print_gpu_status()`: Prints whether a CUDA GPU is available & number of GPUs
    - `get_agnostic_device()`: Returns device name as "cuda" if supported GPU is available or will return "cpu"
 2. [data_setup.py](data_setup.py) : Includes following functions to setting up data for training:
-   - `create_cv_dataloaders(train_dir, test_dir, transform, batch_size, val_dir, num_workers)`: Creates training, validation (optional: if `val_dir` is provided), and testing DataLoaders
+   - `create_cv_dataloaders(train_dir, test_dir, train_transform, test_transform, batch_size, val_dir, val_transform, num_workers)`: Creates training, validation (optional: if `val_dir` is provided), and testing DataLoaders
 3. [engine.py](engine.py) : Inlcudes following functions related to trianing a PyTorch model in a device agnostic manner:
    - `train_step(model, dataloader, loss_fn, optimizer, device)`: Training loop for a single epoch with PyTorch
    - `test_step(model, dataloader, loss_fn, device)`: Testing loop for single epoch with PyTorch
