@@ -10,17 +10,26 @@ Status:
 - [ ] Testing with FoodVision Big
 
 Import module to Google Colab By:
-<br>`!rm -rf pytorch_mod`
-<br>`!git clone https://github.com/PaSathees/pytorch_mod.git`
+```bash
+!rm -rf pytorch_mod
+!git clone https://github.com/PaSathees/pytorch_mod.git
+```
 
 Sample import: 
-<br>`from pytorch_mod import env_setup, data_setup, engine, evaluation, utils, visualization, experimentation, deployment, cv_model_builders`
+```python
+from pytorch_mod import env_setup, data_setup, engine, evaluation, utils, visualization, experimentation, deployment, cv_model_builders
+```
 
 Install module requirements by:
 1. Manually installing PyTorch: 
-`pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
-or visit https://pytorch.org
-2. Install rest of the requirements: `pip install -r pytorch_mod/requirements.txt --quiet`
+```bash
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+or visit https://pytorch.org <br><br>
+2. Install rest of the requirements: 
+```bash 
+pip install -r pytorch_mod/requirements.txt --quiet
+```
 
 Includes following modules:
 1. [env_setup.py](env_setup.py) : Includes following functions related setting up the environment and device agnostic code with PyTorch: 
