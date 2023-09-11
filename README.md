@@ -4,10 +4,9 @@ Boilerplate modules for PyTorch development and training simplying most repetiti
 
 Status:
 1. Supports computer vision. Remaining tasks:
-- [ ] Prediction function
-- [ ] Evaluation function
-- [ ] Testing with FoodVision Mini
-- [ ] Testing with FoodVision Big
+- [ ] Testing with experiment tracking
+- [ ] Testing with paper replication
+- [ ] Testing with deployment
 
 Import module to Google Colab By:
 ```bash
