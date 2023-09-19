@@ -50,9 +50,6 @@ def train_step(
         # send data to device
         X, y = X.to(device), y.to(device)
 
-        print(next(model.parameters()).device)
-        print(device)
-
         # 1. Forward pass
         y_pred = model(X)
 

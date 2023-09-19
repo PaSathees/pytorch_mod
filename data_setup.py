@@ -14,6 +14,7 @@ License: MIT
 import os
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
+import torch
 
 NUM_WORKERS = os.cpu_count()
 
@@ -24,6 +25,7 @@ def create_cv_dataloaders(
     train_transform: transforms.Compose,
     test_transform: transforms.Compose,
     batch_size: int,
+    device: torch.device,
     val_dir: str = None,
     val_transform: transforms.Compose = None,
     num_workers: int = NUM_WORKERS,
@@ -38,6 +40,7 @@ def create_cv_dataloaders(
         train_transform (transforms.Compose): torchvision transforms for training data
         test_transform (transforms.Compose): torchvision transforms for testing data
         batch_size (int): number of samples per batch
+        device (torch.device): PyTorch device for Dataloader Generator
         val_dir (str, optional): Validation directory path. Defaults to None.
         val_transform (transforms.Compose): torchvision transforms for validation data
         num_workers (int, optional): Number of workers per DataLoader. Defaults to NUM_WORKERS.
@@ -59,6 +62,7 @@ def create_cv_dataloaders(
         shuffle=True,
         num_workers=num_workers,
         pin_memory=True,
+        generator=torch.Generator(device)
     )
 
     test_dataloader = DataLoader(
@@ -67,6 +71,7 @@ def create_cv_dataloaders(
         shuffle=False,
         num_workers=num_workers,
         pin_memory=True,
+        generator=torch.Generator(device)
     )
 
     if val_dir:
@@ -80,6 +85,7 @@ def create_cv_dataloaders(
             shuffle=False,
             num_workers=num_workers,
             pin_memory=True,
+            generator=torch.Generator(device)
         )
 
         return train_dataloader, val_dataloader, test_dataloader, class_names
