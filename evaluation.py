@@ -383,6 +383,8 @@ def plot_failed_images_from_generator(
     failed_image_gen,
     class_names: List,
     transform: torchvision.transforms = None,
+    mean: List = None,
+    std: List = None,
     max_images: int = 10,
 ):
     """
@@ -392,6 +394,8 @@ def plot_failed_images_from_generator(
         failed_image_gen: Generator that yields failed images.
         class_names (List): List of class names.
         transform (torchvision.transforms): Transform used for normalization.
+        mean (List): Mean transform (optional),
+        std (List): Standard deviation transform (optional),
         max_images (int): Maximum number of failed images to plot (default is 10).
     """
     for i, (image, predicted, target) in enumerate(failed_image_gen):
@@ -403,7 +407,7 @@ def plot_failed_images_from_generator(
             std = transform.std
             denormalized_image = inverse_normalize(image.clone(), mean, std)
         else:
-            denormalized_image = image.clone()
+            denormalized_image = inverse_normalize(image.clone(), mean, std)
 
         # Convert the tensor to a PIL image
         denormalized_image = transforms.ToPILImage()(denormalized_image)
