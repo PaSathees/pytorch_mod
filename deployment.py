@@ -36,7 +36,7 @@ def save_model_to_directory(
     assert save_name.endswith(".pth") or save_name.endswith(
         "pt"
     ), "[WARN] [EXIT] PyTorch model name should end with '.pth' or 'pt'"
-    save_path = target_directory / save_name
+    save_path = directory_path / save_name
 
     # Save model's state_dict() to the save path
     torch.save(obj=model.state_dict(), f=save_path)
