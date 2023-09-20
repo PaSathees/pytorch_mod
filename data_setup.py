@@ -62,7 +62,7 @@ def create_cv_dataloaders(
         shuffle=True,
         num_workers=num_workers,
         pin_memory=True,
-        generator=torch.Generator(device)
+        # generator=torch.Generator(device)
     )
 
     test_dataloader = DataLoader(
@@ -71,7 +71,7 @@ def create_cv_dataloaders(
         shuffle=False,
         num_workers=num_workers,
         pin_memory=True,
-        generator=torch.Generator(device)
+        # generator=torch.Generator(device)
     )
 
     if val_dir:
@@ -85,7 +85,7 @@ def create_cv_dataloaders(
             shuffle=False,
             num_workers=num_workers,
             pin_memory=True,
-            generator=torch.Generator(device)
+            # generator=torch.Generator(device)
         )
 
         return train_dataloader, val_dataloader, test_dataloader, class_names
