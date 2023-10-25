@@ -24,6 +24,7 @@ def train_step(
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
+    problem_type: str = "multiclass"
 ) -> Tuple[float, float]:
     """Training loop for a single epoch with PyTorch
 
@@ -35,6 +36,7 @@ def train_step(
         loss_fn (torch.nn.Module): PyTorch loss function to minimize
         optimizer (torch.optim.Optimizer): PyTorch optimizer to help minimize loss function
         device (torch.device): PyTorch device instance
+        problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
 
     Returns:
         Tuple (float, float): results of epoch training (loss, accuracy)
@@ -47,6 +49,10 @@ def train_step(
 
     # loop through batches
     for batch, (X, y) in enumerate(dataloader):
+        #add additional dimension for binary classification
+        if problem_type == "binary":
+            y = y.unsqueeze(1)
+
         # send data to device
         X, y = X.to(device), y.to(device)
 
@@ -82,6 +88,7 @@ def test_step(
     dataloader: torch.utils.data.DataLoader,
     loss_fn: torch.nn.Module,
     device: torch.device,
+    problem_type: str = "multiclass"
 ) -> Tuple[float, float]:
     """Testing loop for single epoch with PyTorch
 
@@ -92,6 +99,7 @@ def test_step(
         dataloader (torch.utils.data.DataLoader): DataLoader instance to be tested on
         loss_fn (torch.nn.Module): PyTorch loss function to test
         device (torch.device): PyTorch device instance for testing
+        problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
 
     Returns:
         Tuple (float, float): Testing results (loss, accuarcy)
@@ -105,6 +113,10 @@ def test_step(
     # Set inference mode
     with torch.inference_mode():
         for batch, (X, y) in enumerate(dataloader):
+            #add additional dimension for binary classification
+            if problem_type == "binary":
+                y = y.unsqueeze(1)
+
             # Send data to device
             X, y = X.to(device), y.to(device)
 
@@ -137,6 +149,7 @@ def train(
     test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
     writer: tensorboard.SummaryWriter = None,
+    problem_type: str = "multiclass"
 ) -> Dict[str, List[float]]:
     """Trains, validates (optional), and tests a PyTorch Model.
 
@@ -163,6 +176,7 @@ def train(
         val_dataloader (torch.utils.data.DataLoader, optional): DataLoader instance to validate the model. Defaults to None.
         print_status (bool, optional): Whether to print epoch results. Defaults to True.
         writer (torch.utils.tensorboard.writer.SummaryWriter, optional): A SummaryWriter instance to write model summary to.
+        problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
 
     Returns:
         Tuple (Dict[str, List[float]], float): Results dictionary with training and testing loss and accuracies over the epochs, and total training time
@@ -197,10 +211,15 @@ def train(
             loss_fn=loss_fn,
             optimizer=optimizer,
             device=device,
+            problem_type=problem_type
         )
 
         val_loss, val_accuracy = test_step(
-            model=model, dataloader=val_dataloader, loss_fn=loss_fn, device=device
+            model=model, 
+            dataloader=val_dataloader, 
+            loss_fn=loss_fn, 
+            device=device, 
+            problem_type=problem_type
         )
 
         # Printing status
@@ -241,7 +260,11 @@ def train(
 
     if test_dataloader:
         test_loss, test_accuracy = test_step(
-            model=model, dataloader=test_dataloader, loss_fn=loss_fn, device=device
+            model=model, 
+            dataloader=test_dataloader, 
+            loss_fn=loss_fn, 
+            device=device, 
+            problem_type=problem_type
         )
 
         # printing status
