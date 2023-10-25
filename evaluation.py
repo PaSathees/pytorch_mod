@@ -71,7 +71,7 @@ def pred_and_plot_image(
         )
     else:
         plt.title(
-            f"Pred: {class_names[target_image_pred_label]} | Prob: {target_image_pred:.3f}")
+            f"Pred: {class_names[target_image_pred_label]} | Prob: {target_image_pred.max():.3f}")
     plt.axis(False)
 
 
@@ -368,7 +368,7 @@ def failed_image_generator(
                 y_pred_probs = torch.softmax(outputs, dim=1)
                 predictions = torch.argmax(y_pred_probs, dim=1)
             else:
-                predictions = 1 if outputs > threshold else 0
+                predictions = (outputs >= threshold)
             for input, prediction, target in zip(inputs, predictions, targets):
                 if not torch.all(prediction == target):
                     yield input.cpu(), prediction.cpu(), target.cpu()
