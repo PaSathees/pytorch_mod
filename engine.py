@@ -51,7 +51,8 @@ def train_step(
     for batch, (X, y) in enumerate(dataloader):
         #add additional dimension for binary classification
         if problem_type == "binary":
-            y = y.unsqueeze(1)
+            y = y.unsqueeze(1).long()
+            y = y.float()
 
         # send data to device
         X, y = X.to(device), y.to(device)
@@ -116,6 +117,7 @@ def test_step(
             #add additional dimension for binary classification
             if problem_type == "binary":
                 y = y.unsqueeze(1)
+                y = y.float()
 
             # Send data to device
             X, y = X.to(device), y.to(device)
