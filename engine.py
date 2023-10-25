@@ -74,8 +74,12 @@ def train_step(
         optimizer.step()
 
         # Calculate accuracy
-        y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-        accuracy += (y_pred_class == y).sum().item() / len(y_pred)
+        if problem_type == "binary":
+            y_pred_class = (y_pred >= 0.5).float()
+            accuracy += (y_pred_class == y.unsqueeze(1)).sum().item() / len(y_pred)
+        else:
+            y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
+            accuracy += (y_pred_class == y).sum().item() / len(y_pred)
 
     # calculate train loss & accuracy for epoch
     loss = loss / len(dataloader)
@@ -130,9 +134,12 @@ def test_step(
             loss += batch_loss.item()
 
             # Calculate accuracy
-            test_pred_labels = test_pred_logits.argmax(dim=1)
-            accuracy += (test_pred_labels == y).sum().item() / len(test_pred_labels)
-
+            if problem_type == "binary":
+                y_pred_class = (test_pred_logits >= 0.5).float()
+                accuracy += (y_pred_class == y.unsqueeze(1)).sum().item() / len(test_pred_logits)
+            else:               
+                test_pred_labels = test_pred_logits.argmax(dim=1)
+                accuracy += (test_pred_labels == y).sum().item() / len(test_pred_labels)
     # Calculate test loss and accuracy for epoch
     loss = loss / len(dataloader)
     accuracy = accuracy / len(dataloader)

@@ -61,13 +61,17 @@ def pred_and_plot_image(
         target_image_pred_probs = torch.softmax(target_image_pred, dim=1)
         target_image_pred_label = torch.argmax(target_image_pred_probs, dim=1)
     else:
-        target_image_pred_label = 1 if target_image_pred > sigmoid_threshold else 0
+        target_image_pred_label = 1 if target_image_pred >= sigmoid_threshold else 0
 
     plt.figure()
     plt.imshow(img)
-    plt.title(
-        f"Pred: {class_names[target_image_pred_label]} | Prob: {target_image_pred_probs.max():.3f}"
-    )
+    if multiclass:
+        plt.title(
+            f"Pred: {class_names[target_image_pred_label]} | Prob: {target_image_pred_probs.max():.3f}"
+        )
+    else:
+        plt.title(
+            f"Pred: {class_names[target_image_pred_label]} | Prob: {target_image_pred:.3f}")
     plt.axis(False)
 
 
@@ -244,6 +248,9 @@ def evaluate_model_metrics(
     with torch.inference_mode():
         # Loss calculation & accumulating outputs and targets for other metrics
         for X, y in tqdm(test_dataloader, desc="Making Predictions"):
+            if task == "binary":
+                y = y.unsqueeze(1)
+                y = y.float()
             X, y = X.to(device), y.to(device)
             y_pred_logits = model(X)
             loss += loss_fn(y_pred_logits, y)
@@ -252,7 +259,7 @@ def evaluate_model_metrics(
                 y_pred_probs = torch.softmax(y_pred_logits, dim=1)
                 y_pred_label = torch.argmax(y_pred_probs, dim=1)
             else:
-                y_pred_label = 1 if y_pred_logits > threshold else 0
+                y_pred_label = (y_pred_logits >= 0.5).float()
 
             outputs.append(y_pred_label.cpu())
             targets.append(y.cpu())
@@ -312,13 +319,18 @@ def evaluate_classification_report(
 
     with torch.inference_mode():
         for inputs, targets in tqdm(test_dataloader, desc="Making Predictions"):
+            if task == "binary":
+                targets = targets.unsqueeze(1)
+                targets = targets.float()
+
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
+
             if task == "multiclass":
                 y_pred_probs = torch.softmax(outputs, dim=1)
                 predicted = torch.argmax(y_pred_probs, dim=1)
-            else:
-                predicted = 1 if outputs > threshold else 0
+            elif task == "binary":
+                predicted = (outputs >= 0.5).float()
             y_true.extend(targets.cpu().numpy())
             y_pred.extend(predicted.cpu().numpy())
 
