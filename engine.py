@@ -92,7 +92,7 @@ def train_step(
     accuracy = torchmetrics.Accuracy(
         task=problem_type, 
         num_classes=len(dataloader.dataset.classes)).to(device)
-    acc = accuracy(all_predictions, all_targets)
+    acc = accuracy(all_predictions, all_targets).item()
 
     return loss, acc
 
@@ -160,7 +160,7 @@ def test_step(
     accuracy = torchmetrics.Accuracy(
         task=problem_type, 
         num_classes=len(dataloader.dataset.classes)).to(device)
-    acc = accuracy(all_predictions, all_targets)
+    acc = accuracy(all_predictions, all_targets).item()
 
     return loss, acc
 
