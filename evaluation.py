@@ -207,6 +207,7 @@ def evaluate_model_metrics(
     loss_fn: torch.nn.Module,
     average: str = "micro",
     threshold: float = 0.5,
+    plot_confusion: bool = True
 ):
     """
     Evaluate a PyTorch model using torchmetrics for common metrics.
@@ -220,6 +221,7 @@ def evaluate_model_metrics(
         loss_fn (torch.nn.Module): loss function for loss evaluation
         average (str): Torchmetrics average parameter, Default "micro"
         threshold (float): Sigmoid threshold, Default 0.5.
+        plot_confusion (bool): whether to plot confusion matrix after evaluation, Default True
 
     Returns:
         dict: Dictionary containing various evaluation metrics.
@@ -282,11 +284,12 @@ def evaluate_model_metrics(
         }
 
     # Plot the confusion matrix
-    plot_confusion_matrix(
-        conf_mat=metric_dict["model_confusion_matrix"],
-        class_names=class_names,
-        figsize=(10, 7),
-    )
+    if plot_confusion:
+        plot_confusion_matrix(
+            conf_mat=metric_dict["model_confusion_matrix"],
+            class_names=class_names,
+            figsize=(10, 7),
+        )
 
     return metric_dict
 
