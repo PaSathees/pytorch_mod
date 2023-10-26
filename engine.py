@@ -16,6 +16,7 @@ from timeit import default_timer as timer
 import torch
 from tqdm.auto import tqdm
 from torch.utils import tensorboard
+import torchmetrics
 
 
 def train_step(
@@ -24,7 +25,8 @@ def train_step(
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
-    problem_type: str = "multiclass"
+    problem_type: str = "multiclass",
+    sigmoid_threshold: float = 0.5
 ) -> Tuple[float, float]:
     """Training loop for a single epoch with PyTorch
 
@@ -37,6 +39,7 @@ def train_step(
         optimizer (torch.optim.Optimizer): PyTorch optimizer to help minimize loss function
         device (torch.device): PyTorch device instance
         problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
+        sigmoid_threshold (float): Sigmoid threshold value, default 0.5
 
     Returns:
         Tuple (float, float): results of epoch training (loss, accuracy)
@@ -44,8 +47,10 @@ def train_step(
     # Set trianing mode
     model.train()
 
-    # define train loss & acc values
-    loss, accuracy = 0, 0
+    # define train loss & acc variables
+    loss = 0
+    all_predictions = torch.Tensor([]).to(device)
+    all_targets = torch.Tensor([]).to(device)
 
     # loop through batches
     for batch, (X, y) in enumerate(dataloader):
@@ -73,19 +78,23 @@ def train_step(
         # 5. Optimizer step
         optimizer.step()
 
-        # Calculate accuracy
-        if problem_type == "binary":
-            y_pred_class = (y_pred >= 0.5).float()
-            accuracy += (y_pred_class == y.unsqueeze(1)).sum().item() / len(y_pred)
-        else:
+        # Accumulate for accuracy
+        if problem_type == "multiclass":
             y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-            accuracy += (y_pred_class == y).sum().item() / len(y_pred)
+        elif problem_type == "binary":
+            y_pred_class = (y_pred >= sigmoid_threshold).float()
+
+        all_predictions = torch.cat((all_predictions, y_pred_class), dim=0)
+        all_targets = torch.cat((all_targets, y), dim=0)
 
     # calculate train loss & accuracy for epoch
     loss = loss / len(dataloader)
-    accuracy = accuracy / len(dataloader)
+    accuracy = torchmetrics.Accuracy(
+        task=problem_type, 
+        num_classes=len(dataloader.dataset.classes)).to(device)
+    acc = accuracy(all_predictions, all_targets)
 
-    return loss, accuracy
+    return loss, acc
 
 
 def test_step(
@@ -93,7 +102,8 @@ def test_step(
     dataloader: torch.utils.data.DataLoader,
     loss_fn: torch.nn.Module,
     device: torch.device,
-    problem_type: str = "multiclass"
+    problem_type: str = "multiclass",
+    sigmoid_threshold: float = 0.5
 ) -> Tuple[float, float]:
     """Testing loop for single epoch with PyTorch
 
@@ -105,6 +115,7 @@ def test_step(
         loss_fn (torch.nn.Module): PyTorch loss function to test
         device (torch.device): PyTorch device instance for testing
         problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
+        sigmoid_threshold (float): Sigmoid threshold value, default 0.5
 
     Returns:
         Tuple (float, float): Testing results (loss, accuarcy)
@@ -113,7 +124,9 @@ def test_step(
     model.eval()
 
     # define loss & accuracy values
-    loss, accuracy = 0, 0
+    loss = 0
+    all_predictions = torch.Tensor([]).to(device)
+    all_targets = torch.Tensor([]).to(device)
 
     # Set inference mode
     with torch.inference_mode():
@@ -133,18 +146,23 @@ def test_step(
             batch_loss = loss_fn(test_pred_logits, y)
             loss += batch_loss.item()
 
-            # Calculate accuracy
-            if problem_type == "binary":
-                y_pred_class = (test_pred_logits >= 0.5).float()
-                accuracy += (y_pred_class == y.unsqueeze(1)).sum().item() / len(test_pred_logits)
-            else:               
-                test_pred_labels = test_pred_logits.argmax(dim=1)
-                accuracy += (test_pred_labels == y).sum().item() / len(test_pred_labels)
+            # Accumulate for accuracy
+            if problem_type == "multiclass":
+                y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
+            elif problem_type == "binary":
+                y_pred_class = (y_pred >= sigmoid_threshold).float()
+
+            all_predictions = torch.cat((all_predictions, y_pred_class), dim=0)
+            all_targets = torch.cat((all_targets, y), dim=0)
+
     # Calculate test loss and accuracy for epoch
     loss = loss / len(dataloader)
-    accuracy = accuracy / len(dataloader)
+    accuracy = torchmetrics.Accuracy(
+        task=problem_type, 
+        num_classes=len(dataloader.dataset.classes)).to(device)
+    acc = accuracy(all_predictions, all_targets)
 
-    return loss, accuracy
+    return loss, acc
 
 
 def train(
@@ -158,7 +176,8 @@ def train(
     test_dataloader: torch.utils.data.DataLoader = None,
     print_status: bool = True,
     writer: tensorboard.SummaryWriter = None,
-    problem_type: str = "multiclass"
+    problem_type: str = "multiclass",
+    sigmoid_threshold: float = 0.5
 ) -> Dict[str, List[float]]:
     """Trains, validates (optional), and tests a PyTorch Model.
 
@@ -186,6 +205,7 @@ def train(
         print_status (bool, optional): Whether to print epoch results. Defaults to True.
         writer (torch.utils.tensorboard.writer.SummaryWriter, optional): A SummaryWriter instance to write model summary to.
         problem_type (str): Type of problem (values: "multiclass", "binary"). Default "multiclass"
+        sigmoid_threshold (float): Sigmoid threshold value, default 0.5
 
     Returns:
         Tuple (Dict[str, List[float]], float): Results dictionary with training and testing loss and accuracies over the epochs, and total training time
@@ -220,7 +240,8 @@ def train(
             loss_fn=loss_fn,
             optimizer=optimizer,
             device=device,
-            problem_type=problem_type
+            problem_type=problem_type,
+            sigmoid_threshold=sigmoid_threshold
         )
 
         val_loss, val_accuracy = test_step(
@@ -228,7 +249,8 @@ def train(
             dataloader=val_dataloader, 
             loss_fn=loss_fn, 
             device=device, 
-            problem_type=problem_type
+            problem_type=problem_type,
+            sigmoid_threshold=sigmoid_threshold
         )
 
         # Printing status
@@ -273,7 +295,8 @@ def train(
             dataloader=test_dataloader, 
             loss_fn=loss_fn, 
             device=device, 
-            problem_type=problem_type
+            problem_type=problem_type,
+            sigmoid_threshold=sigmoid_threshold
         )
 
         # printing status
