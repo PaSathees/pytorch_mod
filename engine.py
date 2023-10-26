@@ -140,10 +140,10 @@ def test_step(
             X, y = X.to(device), y.to(device)
 
             # 1. Forward pass
-            test_pred_logits = model(X)
+            y_pred = model(X)
 
             # 2. Calculate loss
-            batch_loss = loss_fn(test_pred_logits, y)
+            batch_loss = loss_fn(y_pred, y)
             loss += batch_loss.item()
 
             # Accumulate for accuracy
