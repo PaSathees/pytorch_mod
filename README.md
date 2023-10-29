@@ -3,10 +3,10 @@
 Boilerplate modules for PyTorch development and training simplying most repetitive codes targetted for Jupyter notebook environments like Google Colab.
 
 Status:
-1. Supports computer vision. Remaining tasks:
-- [ ] Testing with experiment tracking
-- [ ] Testing with paper replication
-- [ ] Testing with deployment
+1. Supports computer vision. Tasks:
+- [x] Testing with experiment tracking
+- [x] Testing with paper replication
+- [x] Testing with deployment
 
 Import module to Google Colab By:
 ```bash
@@ -45,7 +45,6 @@ Includes following modules:
    - `pred_and_plot_image(model, image_path, class_names, device, ransform, multiclass, sigmoid_threshold)`: Predicts a local image with the given model and plots both predictions and image
    - `pred_on_custom_image_url(model, class_names, device, transform, url, custom_image_path, multiclass, sigmoid_threshold)`: Predicts on a custom image by downloading from the given URL with the given model and plots both predictions and image
    - `pred_and_plot_local_random_images(model, test_dir_path, class_names, device, transform, multiclass, image_extension, sigmoid_threshold, num_images_to_plot)`: Predicts random number of local image with the given model and plots both predictions and images
-   - `pred_and_plot_colab_interface(model, class_names, device, transform, multiclass, sigmoid_threshold)`: Predicts images uploaded with Google Colab upload interface with the given model and plots both predictions and images
    - `evaluate_model_metrics(model, test_dataloader, device, class_names, task, loss_fn, average, threshold)`: Evaluate a PyTorch model using torchmetrics for common metrics.
    - `evaluate_classification_report(model, test_dataloader, device, class_names, task, threshold)`: Evaluate a PyTorch model and generate a classification report.
    - `failed_image_generator(model, test_dataloader, device, task, threshold)`: Generator that yields failed images from the test DataLoader with their predicted and target labels.
