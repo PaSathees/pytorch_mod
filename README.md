@@ -4,9 +4,9 @@ Boilerplate modules for PyTorch development and training simplying most repetiti
 
 Status:
 1. Supports computer vision. Remaining tasks:
-- [ ] Testing with experiment tracking
-- [ ] Testing with paper replication
-- [ ] Testing with deployment
+- [x] Testing with experiment tracking
+- [x] Testing with paper replication
+- [x] Testing with deployment
 
 Import module to Google Colab By:
 ```bash
