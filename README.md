@@ -7,6 +7,7 @@ Status:
 - [x] Testing with experiment tracking
 - [x] Testing with paper replication
 - [x] Testing with deployment
+- [x] Support MPS (Metal Performance Shaders) for Apple Silicon Machines
 
 Import module to Google Colab By:
 ```bash
@@ -33,8 +34,8 @@ pip install -r pytorch_mod/requirements.txt --quiet
 Includes following modules:
 1. [env_setup.py](env_setup.py) : Includes following functions related setting up the environment and device agnostic code with PyTorch: 
    - `print_versions()`: Prints the available packages versions, e.g., PyTorch, Torchinfo...
-   - `print_gpu_status()`: Prints whether a CUDA GPU is available & number of GPUs
-   - `get_agnostic_device()`: Returns device name as "cuda" if supported GPU is available or will return "cpu"
+   - `print_gpu_status()`: Prints whether a CUDA GPU is available & number of GPUs & prints whether MPS is available
+   - `get_agnostic_device()`: Returns device name as "cuda" if supported GPU is available or "mps" if supported MPS environment is available or will return "cpu"
 2. [data_setup.py](data_setup.py) : Includes following functions to setting up data for training:
    - `create_cv_dataloaders(train_dir, test_dir, train_transform, test_transform, batch_size, val_dir, val_transform, num_workers)`: Creates training, validation (optional: if `val_dir` is provided), and testing DataLoaders
 3. [engine.py](engine.py) : Inlcudes following functions related to trianing a PyTorch model in a device agnostic manner:

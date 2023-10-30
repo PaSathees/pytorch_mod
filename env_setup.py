@@ -102,18 +102,31 @@ def print_versions():
 
 
 def print_gpu_status():
-    """Prints whether a CUDA GPU is available & number of GPUs
+    """Prints whether a CUDA GPU is available & number of GPUs & prints whether MPS is available
     """
     if torch.cuda.is_available():
-        print(f"{torch.cuda.device_count()} Supported CUDA GPU available")
+        print(f"[INFO] {torch.cuda.device_count()} Supported CUDA GPU available")
     else:
-        print("No Supported CUDA GPU found")
+        print("[INFO] No Supported CUDA GPU found")
 
+    if torch.backends.mps.is_available():
+        print("[INFO] This device supports MPS")
+    else: 
+        print("[INFO] This device doesn't support MPS")
 
 def get_agnostic_device():
-    """Returns device name as "cuda" if supported GPU is available or will return "cpu"
+    """Returns device name as "cuda" if supported GPU is available or "mps" if supported MPS environment is available or will return "cpu"
 
     Returns:
-        string: name of the device ("cuda" or "cpu")
+        string: name of the device ("cuda" or "mps" or "cpu")
     """
-    return "cuda" if torch.cuda.is_available() else "cpu"
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        if torch.backends.mps.is_built():
+            return "mps"
+        else:
+            print("[WARN] MPS is available, but current version of PyTorch doesn't built with MPS activation. Returning CPU")
+            return "cpu"
+    else:
+        return "cpu"
